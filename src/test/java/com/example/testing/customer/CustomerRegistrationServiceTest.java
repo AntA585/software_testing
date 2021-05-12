@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -38,7 +39,7 @@ class CustomerRegistrationServiceTest {
     void itShouldSaveNewCustomer() {
         //Given a phone number and a customer
         String phoneNumber = "2168320607";
-        Customer customer = new Customer(UUID.randomUUID(),"Harper",phoneNumber);
+        Customer customer = new Customer(UUID.randomUUID(), "Harper", phoneNumber);
         //...a request
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
         given(customerRepository.selectCustomerByPhoneNumber(phoneNumber)).willReturn(Optional.empty());
@@ -55,10 +56,10 @@ class CustomerRegistrationServiceTest {
         //Given
         String phoneNumber = "2168320607";
         UUID id = UUID.randomUUID();
-        Customer customer = new Customer(id,"Harper",phoneNumber);
+        Customer customer = new Customer(id, "Harper", phoneNumber);
         //...a request
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
-        //No customer with phone number passed
+        //when an existing customer is returned
         given(customerRepository.selectCustomerByPhoneNumber(phoneNumber)).willReturn(Optional.of(customer));
         //When
         underTest.registerNewCustomer(request);
@@ -66,5 +67,24 @@ class CustomerRegistrationServiceTest {
         then(customerRepository).should(never()).save(any());
         then(customerRepository).should().selectCustomerByPhoneNumber(phoneNumber);
         then(customerRepository).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    void itShouldThrowAnErrorIfThePhoneNumberAlreadyExists() {
+        //Given
+        String phoneNumber = "2168320607";
+        UUID id = UUID.randomUUID();
+        Customer customer1 = new Customer(id, "Harper", phoneNumber);
+        Customer customer2 = new Customer(id, "Jazatavia", phoneNumber);
+        //...a request is submitted with a given phone number
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer1);
+        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber)).willReturn(Optional.of(customer2));
+        //Then
+        assertThatThrownBy(() -> underTest.registerNewCustomer(request))
+                .isInstanceOf(IllegalStateException.class).
+                hasMessageContaining(String.format("This phone number [%s] already exists", phoneNumber));
+
+        //Finally
+        then(customerRepository).should(never()).save(any(Customer.class));
     }
 }
