@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerRegistrationService {
@@ -33,10 +34,12 @@ public class CustomerRegistrationService {
             throw new IllegalStateException(String.format("This phone number [%s] already exists", phoneNumber));
         } else {
 
-            customerRepository.save(request.getCustomer());
-
+            if (request.getCustomer().getId() == null) {
+                request.getCustomer().setId(UUID.randomUUID());
+            }
         }
+        customerRepository.save(request.getCustomer());
+
     }
-
-
 }
+
