@@ -8,7 +8,7 @@ public class CardPaymentCharge {
         this.wasCardDebited = isCardDebited;
     }
 
-    public boolean isWasCardDebited() {
+    public boolean isCardDebited() {
         return wasCardDebited;
     }
 

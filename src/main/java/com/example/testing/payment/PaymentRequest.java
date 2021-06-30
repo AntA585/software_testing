@@ -16,4 +16,8 @@ public class PaymentRequest {
                 "payment=" + payment +
                 '}';
     }
+
+    public Payment getPayment() {
+        return payment;
+    }
 }
